@@ -1,0 +1,62 @@
+Gin:
+  AppMode: "debug"
+  HttpHost: "0.0.0.0"
+  HttpPort: 8080
+
+MySQL:
+  DBHost: "127.0.0.1"
+  DBPort: 3306
+  DBUser: "root"
+  DBPassWord: "mysql123"
+  DBName: "fileserver"
+  Charset: "utf8mb4"
+
+Etcd:
+  EtcdHost: "127.0.0.1"
+  EtcdPort: 2379
+
+Redis:
+  RedisHost: "127.0.0.1"
+  RedisPort: 6379
+  RedisPassword: "123456"
+
+Service:
+  UserServiceAddress: "127.0.0.1:8081"
+  UploadServiceAddress: "127.0.0.1:8082"
+  DownloadServiceAddress: "127.0.0.1:8083"
+  TransferServiceAddress: "127.0.0.1:8084"
+  DBProxyServiceAddress: "127.0.0.1:8085"
+
+Domain:
+  UserServiceDomain: "user"
+  UploadServiceDomain: "upload"
+  DownloadServiceDomain: "download"
+  TransferServiceDomain: "transfer"
+  DbProxyServiceDomain: "dbproxy"
+
+RabbitMQ:
+  RabbitMQ: "amqp"
+  RabbitMQHost: "127.0.0.1"
+  RabbitMQPort: 5672
+  RabbitMQUser: "guest"
+  RabbitMQPassWord: "guest"
+  # 下面是关于操作的配置
+  # AsyncTransferEnable : 是否开启文件异步转移
+  AsyncTransferEnable: true
+  # RabbitURL: rabbitmq服务的入口url
+  RabbitURL: "amqp://guest:guest@localhost:5672/"
+  # TransExchangeName: 转移文件的交换机
+  TransExchangeName: "uploadserver.trans"
+  # TransOSSQueueName: oss转移队列
+  TransOSSQueueName: "uploadserver.trans.oss"
+  # TransOSSErrQueueName: oss转移出错队列(存储出错的任务)
+  TransOSSErrQueueName: "uploadserver.trans.oss.err"
+  # TransOSSRoutingKey: oss转移绑定的routingkey(路由键)
+  TransOSSRoutingKey: "oss"
+
+# TODO 阿里云 oss 配置 或者 七牛云配置
+AliYun:
+  OSSBucket: "filestore2"
+  OSSAccessKeyID: "LTAI5tPuNKrrMD7MdxcnrgS4"
+  OSSAccessKeySecret: "lr4Oy2PxVwzrCHecMxtZEdw2hlcbuD"
+  OSSEndpoint: "oss-cn-beijing.aliyuncs.com"

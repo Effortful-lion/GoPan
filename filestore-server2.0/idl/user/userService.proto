@@ -1,0 +1,69 @@
+syntax = "proto3";
+package userService;
+option go_package = "./userPb";
+
+
+// 核心数据结构：用户信息（与提供的User结构体完全对应）
+message User {
+  string user_name = 1;      // 用户名（对应UserName）
+  string email = 2;          // 邮箱（对应Email）
+  string phone = 3;          // 手机号（对应Phone）
+  string signup_at = 4;      // 注册时间（对应SignupAt，格式化字符串）
+  string last_active_at = 5; // 最后活跃时间（对应LastActiveAt）
+  int32 status = 6;          // 用户状态（对应Status，如0正常、1禁用）
+}
+
+// 登录成功返回数据（对应handler中登录响应的Data结构）
+message SigninData {
+  string location = 1;       // 跳转地址（首页URL）
+  string user_name = 2;      // 用户名
+  string token = 3;          // 登录令牌（40位字符串）
+}
+
+
+// 1. 用户注册相关
+message SignupRequest {
+  string user_name = 1;      // 用户名（必填，长度≥3）
+  string password = 2;       // 密码（必填，长度≥5）
+}
+
+message SignupResponse {
+  int32 code = 1;            // 状态码（0成功，-1参数无效，-2注册失败）
+  string msg = 2;            // 提示信息（如"SUCCESS"、"Invalid parameter"）
+}
+
+// 2. 用户登录相关
+message SigninRequest {
+  string user_name = 1;      // 用户名
+  string password = 2;       // 密码（原始密码，服务端会加盐加密）
+}
+
+message SigninResponse {
+  int32 code = 1;            // 状态码（0成功，-1密码错误，-2token生成失败）
+  string msg = 2;            // 提示信息（如"OK"、"Password FAILED"）
+  SigninData data = 3;       // 成功时返回的跳转信息和令牌
+}
+
+
+// 3. 获取用户信息相关
+message UserInfoRequest {
+  string user_name = 1;      // 用户名（用于查询用户信息）
+}
+
+message UserInfoResponse {
+  int32 code = 1;            // 状态码（0成功，-1查询失败）
+  string msg = 2;            // 提示信息
+  User user = 3;             // 成功时返回的用户详情（与User结构体字段一一对应）
+}
+
+// 用户服务定义（方法名与handler一一对应）
+service UserService {
+  // 用户注册（对应SignupHandler）
+  rpc SignupHandlerPost (SignupRequest) returns (SignupResponse);
+
+  // 用户登录（对应SignInHandler）
+  rpc SignInHandlerPost (SigninRequest) returns (SigninResponse);
+
+  // 获取用户信息（对应UserInfoHandler）
+  rpc UserInfoHandler (UserInfoRequest) returns (UserInfoResponse);
+}

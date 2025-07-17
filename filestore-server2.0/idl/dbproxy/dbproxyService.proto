@@ -1,0 +1,163 @@
+syntax = "proto3";
+package DBProxyService;
+option go_package = "./dbproxyPb";
+
+
+// 文件元信息（与结构体FileMeta完全对应）
+message FileMeta {
+  string file_sha1 = 1;      // 基于SHA1算法的文件哈希值（对应FileSha1）
+  string file_name = 2;      // 文件名（对应FileName）
+  int64 file_size = 3;       // 文件大小（对应FileSize）
+  string location = 4;       // 文件存储路径（对应Location）
+  string upload_at = 5;      // 文件上传时间（对应UploadAt）
+  // 移除原"status"字段（结构体中无此属性）
+}
+
+// 用户文件信息（复用FileMeta并补充用户关联字段）
+message UserFileMeta {
+  string user_name = 1;      // 用户名
+  FileMeta file_meta = 2;    // 文件元信息（关联上述FileMeta）
+  string last_updated = 3;      // 文件最后更新时间（用户视角的上传时间）
+}
+
+// 通过哈希获取文件元信息请求
+message GetFileMetaRequest {
+  string file_sha1 = 1;      // 文件SHA1哈希值（与FileMeta.FileSha1对应）
+}
+
+// 通过哈希获取文件元信息响应（仅返回文件元信息）
+message GetFileMetaResponse {
+  FileMeta file_meta = 1;    // 文件元信息（查询失败时可为空）
+}
+
+// 更新文件元信息请求（支持重命名等操作）
+message FileMetaUpdateRequest {
+  string op_type = 1;        // 操作类型（如"0"表示重命名）
+  string file_sha1 = 2;      // 文件SHA1哈希值（定位文件）
+  string file_name = 3;      // 新文件名（重命名时使用）
+}
+
+// 更新文件元信息响应（返回更新后的元信息）
+message FileMetaUpdateResponse {
+  FileMeta file_meta = 1;    // 更新后的文件元信息（更新失败时可为空）
+}
+
+// 删除文件请求
+message FileDeleteRequest {
+  string file_sha1 = 1;      // 文件SHA1哈希值（定位文件）
+}
+
+// 删除文件响应（空消息体，通过gRPC错误码判断结果）
+message FileDeleteResponse {}
+
+// 批量查询文件请求
+message FileQueryRequest {
+  string user_name = 1;      // 用户名
+  int32 limit = 2;           // 查询数量限制
+}
+
+// 批量查询文件响应（仅返回用户文件列表）
+message FileQueryResponse {
+  repeated UserFileMeta user_files = 1; // 用户文件列表（查询失败时为空）
+}
+
+// meta
+message UpdateFileMetaRequest{
+  FileMeta file_meta = 1;
+}
+message UpdateFileMetaResp{
+  FileMeta file_meta = 1;
+}
+
+message OnUserFileUploadFinishedRequest{
+  string username = 1;
+  string filehash = 2;
+  string filename = 3;
+  int64 filesize = 4;
+}
+message OnUserFileUploadFinishedResp{
+}
+
+// redis
+message CacheChunkData{
+  string filehash = 1;
+  int64 filesize = 2;
+  int32 chunksize = 3;
+  int32 chunkcount = 4;
+  string username = 5;
+}
+message CacheChunkRequest{
+  string key = 1;
+  CacheChunkData data = 2;
+}
+message CacheChunkResp{}
+
+message CacheChunkUpdateRequest{
+  string hashkey = 1;
+  string key = 2;
+  int32 value = 3;
+}
+message CacheChunkUpdateResp{}
+
+message CacheChunkQueryRequest{
+  string hashkey = 1;
+}
+message CacheChunkQueryResp{
+  map<string, string> data = 1;
+}
+
+message CacheChunkDeleteRequest{
+  string hashkey = 1;
+}
+message CacheChunkDeleteResp{}
+
+// mysql
+message OnFileUploadFinishedRequest{
+  string filehash = 1;
+  string filename = 2;
+  int64 filesize = 3;
+  string fileaddr = 4;
+}
+message OnFileUploadFinishedResp{
+}
+
+// 用户密码校验
+message CheckPasswordRequest {
+  string username = 1;      // 用户名
+  string password = 2;       // 密码（原始密码，服务端会加盐加密）
+}
+
+message CheckPasswordResponse {
+}
+
+// 用户注册
+message SignupRequest {
+  string username = 1;      // 用户名（必填，长度≥3）
+  string password = 2;       // 密码（必填，长度≥5）
+}
+
+message SignupResponse {
+}
+
+// 文件元信息服务（保持核心接口不变）
+service DBProxyService {
+  rpc GetFileMetaHandler (GetFileMetaRequest) returns (GetFileMetaResponse);
+  rpc FileMetaUpdateHandler (FileMetaUpdateRequest) returns (FileMetaUpdateResponse);
+  rpc FileDeleteHandler (FileDeleteRequest) returns (FileDeleteResponse);
+  rpc FileQueryHandler (FileQueryRequest) returns (FileQueryResponse);
+  // meta/op
+  rpc FileMetaUpdateAll (UpdateFileMetaRequest) returns (UpdateFileMetaResp);
+  rpc OnUserFileUploadFinished (OnUserFileUploadFinishedRequest) returns (OnUserFileUploadFinishedResp);
+
+  // redis
+  rpc CacheChunk (CacheChunkRequest) returns (CacheChunkResp);
+  rpc CacheChunkUpdate (CacheChunkUpdateRequest) returns (CacheChunkUpdateResp);
+  rpc CacheChunkQuery (CacheChunkQueryRequest) returns (CacheChunkQueryResp);
+  rpc CacheChunkDelete (CacheChunkDeleteRequest) returns (CacheChunkDeleteResp);
+
+  rpc OnFileUploadFinished (OnFileUploadFinishedRequest) returns (OnFileUploadFinishedResp);
+
+  rpc CheckPassword (CheckPasswordRequest) returns (CheckPasswordResponse);
+  rpc UserSignUp (SignupRequest) returns (SignupResponse);
+}
+

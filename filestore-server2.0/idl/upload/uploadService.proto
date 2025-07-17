@@ -1,0 +1,142 @@
+syntax = "proto3";
+package uploadService;
+option go_package = "./uploadPb";
+
+// 基础数据结构定义
+// 1. 文件元信息（用于上传后返回文件核心信息）
+message FileMeta {
+  string file_hash = 1;      // 文件哈希值（唯一标识）
+  string file_name = 2;      // 文件名
+  int64 file_size = 3;       // 文件大小（字节）
+  string upload_at = 4;      // 上传时间（格式化字符串）
+  string location = 5;       // 存储路径（本地路径或OSS路径）
+}
+
+// 2. 分块上传初始化信息（对应handler中的MultipartUploadInfo）
+message MultipartUploadInitInfo {
+  string file_hash = 1;      // 文件哈希值
+  int64 file_size = 2;       // 文件总大小
+  string upload_id = 3;      // 分块上传唯一标识（uploadid）
+  int32 chunk_size = 4;      // 单分块大小（字节）
+  int32 chunk_count = 5;     // 总块数
+}
+
+// 3. 上传进度信息（用于查询上传状态）
+message UploadProgress {
+  int32 total_count = 1;     // 总块数
+  int32 completed_count = 2; // 已完成块数
+  string progress = 3;       // 进度百分比（如"50%"）
+  repeated int32 lacking_chunks = 4; // 缺失的分块索引列表
+}
+
+
+// 请求/响应消息定义
+// 1. 普通文件上传请求（对应UploadHandler POST方法）
+message UploadRequest {
+  FileMeta file_meta = 1;
+  string username = 2;
+}
+
+// 普通文件上传响应
+message UploadResponse {
+  string url = 1;
+}
+
+
+// 2. 秒传请求（对应TryFastUploadHandler）
+message TryFastUploadRequest {
+  string username = 1;       // 用户名
+  string file_hash = 2;      // 文件哈希值（预计算的哈希）
+  string file_name = 3;      // 文件名
+  int64 file_size = 4;       // 文件大小（字节）
+}
+
+// 秒传响应
+message TryFastUploadResponse {
+}
+
+
+// 3. 分块上传初始化请求（对应InitialMultipartUploadHandler）
+message InitMultipartUploadRequest {
+  string username = 1;       // 用户名
+  string file_hash = 2;      // 文件哈希值
+  int64 file_size = 3;       // 文件总大小（字节）
+}
+
+// 分块上传初始化响应
+message InitMultipartUploadResponse {
+  MultipartUploadInitInfo init_info = 1; // 分块上传初始化信息（成功时返回）
+}
+
+
+// 4. 分块上传请求（对应UploadPartHandler）
+message UploadPartRequest {
+  string upload_id = 1;      // 分块上传唯一标识（uploadid）
+  string chunk_index = 2;     // 分块索引（index，从0或1开始，与前端保持一致）
+}
+
+// 分块上传响应
+message UploadPartResponse {
+}
+
+
+// 5. 分块合并请求（对应CompleteUploadHandler）
+message CompleteUploadRequest {
+  string upload_id = 1;      // 分块上传唯一标识
+  string username = 2;       // 用户名
+  string file_hash = 3;      // 文件哈希值
+  int64 file_size = 4;       // 文件总大小
+  string file_name = 5;      // 文件名
+}
+
+// 分块合并响应
+message CompleteUploadResponse {
+}
+
+
+// 6. 取消上传请求（对应CancelUploadHandler）
+message CancelUploadRequest {
+  string upload_id = 1;      // 分块上传唯一标识
+}
+
+// 取消上传响应
+message CancelUploadResponse {
+}
+
+
+// 7. 查询上传状态请求（对应QueryUploadStatusHandler）
+message QueryUploadStatusRequest {
+  string upload_id = 1;      // 分块上传唯一标识
+}
+
+// 查询上传状态响应
+message QueryUploadStatusResponse {
+  int32 totalCount = 1;
+  int32 chunkCount = 2;
+  string progress = 3;
+  repeated int32 lacking = 4;
+}
+
+// 上传服务定义（方法名与handler一一对应）
+service UploadService {
+  // 普通文件上传（对应UploadHandler）
+  rpc UploadHandlerPost (UploadRequest) returns (UploadResponse);
+
+  // 秒传校验（对应TryFastUploadHandler）
+  rpc TryFastUploadHandler (TryFastUploadRequest) returns (TryFastUploadResponse);
+
+  // 分块上传初始化（对应InitialMultipartUploadHandler）
+  rpc InitMultipartUpload (InitMultipartUploadRequest) returns (InitMultipartUploadResponse);
+
+  // 分块上传（对应UploadPartHandler）
+  rpc UploadPartHandler (UploadPartRequest) returns (UploadPartResponse);
+
+  // 分块合并（对应CompleteUploadHandler）
+  rpc CompleteUploadHandler (CompleteUploadRequest) returns (CompleteUploadResponse);
+
+  // 取消上传（对应CancelUploadHandler）
+  rpc CancelUploadHandler (CancelUploadRequest) returns (CancelUploadResponse);
+
+  // 查询上传状态（对应QueryUploadStatusHandler）
+  rpc QueryUploadStatusHandler (QueryUploadStatusRequest) returns (QueryUploadStatusResponse);
+}
