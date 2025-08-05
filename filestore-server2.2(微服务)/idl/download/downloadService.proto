@@ -1,0 +1,45 @@
+syntax = "proto3";
+package downloadService;
+option go_package = "./downloadPb";
+
+// 基础数据结构：文件元信息（核心字段，用于支撑下载逻辑）
+message FileMeta {
+  string file_hash = 1;      // 文件唯一标识（哈希值，与handler中的filehash/fsha1对应）
+  string file_name = 2;      // 文件名（用于下载时的保存名称）
+  string location = 3;       // 文件存储位置（本地路径或OSS地址）
+  string storage_type = 4;   // 存储类型（扩展字段："local"本地 / "oss"OSS / "ceph"等，用于后续存储源判断）
+}
+
+
+// 1. 下载文件相关（对应 DownloadHandler）
+// 请求：通过文件哈希值定位文件
+message DownloadRequest {
+  string file_hash = 1;  // 必传：文件哈希值（对应handler中的fsha1参数）
+}
+
+// 响应：包含文件二进制数据和文件名（用于客户端保存）
+message DownloadResponse {
+  bytes file_data = 1;   // 文件二进制内容（对应handler中读取的file数据）
+}
+
+
+// 2. 生成OSS下载地址相关（对应 DownloadURLHandler）
+// 请求：通过文件哈希值查询文件并生成下载地址
+message DownloadURLRequest {
+  string file_hash = 1;  // 必传：文件哈希值（对应handler中的filehash参数）
+}
+
+// 响应：返回签名后的OSS下载地址
+message DownloadURLResponse {
+  string signed_url = 1;  // 签名后的OSS下载链接（对应handler中的signedURL）
+}
+
+
+// 下载服务定义（函数名与handler保持一致）
+service DownloadService {
+  // 直接下载文件（对应 DownloadHandler）
+  rpc DownloadHandler (DownloadRequest) returns (DownloadResponse);
+
+  // 生成OSS文件下载地址（对应 DownloadURLHandler）
+  rpc DownloadURLHandler (DownloadURLRequest) returns (DownloadURLResponse);
+}

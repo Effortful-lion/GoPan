@@ -54,13 +54,14 @@ RabbitMQ:
   # TransOSSRoutingKey: oss转移绑定的routingkey(路由键)
   TransOSSRoutingKey: "oss"
 
-# TODO 阿里云 oss 配置 或者 七牛云配置
+# TODO 阿里云 oss 配置 或者 七牛云配置（不可暴露）
 AliYun:
   OSSBucket: "filestore2"
-  OSSAccessKeyID : "LTAI5tPuNKrrMD7XXXXXXXXXX"
-  OSSAccessKeySecret : "lr4Oy2PxVwzXXXXXXXXXXXXXXXXXX"
+  OSSAccessKeyID: "LTAI5tPuNKrrMD7MdxcnXXXX"
+  OSSAccessKeySecret: "lr4Oy2PxVwzrCHecMxtZEdw2hXXXX"
   OSSEndpoint: "oss-cn-beijing.aliyuncs.com"
 
+# 私有云服务配置
 Ceph:
   CephAccessKey: "7367PT68J5OCWA84H8EE"
   CephSecretKey: "ieAuUzUJJ9Wa9SBTGSnloaIjS8eD8p9z2zPCMMCO"
