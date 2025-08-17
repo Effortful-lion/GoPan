@@ -1,0 +1,2 @@
+docker start elasticsearch-single
+rem docker run -d --name elasticsearch-single -p 9200:9200 -e "discovery.type=single-node" -e "network.host=0.0.0.0" -e "network.publish_host=127.0.0.1" -e "xpack.security.enabled=false" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" elasticsearch:7.14.0

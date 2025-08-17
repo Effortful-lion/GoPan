@@ -1,0 +1,28 @@
+syntax = "proto3";
+package ESService;
+option go_package = "./esPb";
+
+// key、username
+message SearchReq {
+  string key = 1;            // 用于搜索的文件名
+  string username = 2;       // 用于搜索的用户名
+  string index = 3;          // 用于搜索的索引（表名）
+  int64 start = 4;          // 偏移量
+  int64 size = 5;           // 页容量
+}
+
+// filename path
+message SearchResult{
+  string filename = 1;
+  string path = 2;
+}
+
+message SearchResp {
+  repeated SearchResult res = 1;
+}
+
+// 下载服务定义（函数名与handler保持一致）
+service ESService {
+  // 获取文件 hash 列表
+  rpc GetFileHashList (SearchReq) returns (SearchResp);
+}
